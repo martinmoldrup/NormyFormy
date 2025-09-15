@@ -1,0 +1,27 @@
+
+# Default directories to ignore
+__pycache__/
+.venv/
+node_modules/
+.git/
+.idea/
+.vscode/
+build/
+dist/
+target/
+.vs/
+bin/
+obj/
+publish/
+docs/
+
+# Default files to ignore
+poetry.lock
+package-lock.json
+Cargo.lock
+.DS_Store
+yarn.lock
+copcon_output.txt
+
+# Additional ignore patterns
+*.log

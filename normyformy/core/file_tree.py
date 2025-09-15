@@ -1,0 +1,97 @@
+"""Directory Tree Generation.
+
+This module provides functionality to generate a visual representation of the project's
+directory structure.
+
+NOTE: This module is a modified version of Copcon module: copcon/core/file_tree.py
+"""
+
+from pathlib import Path
+from typing import Optional
+from core.file_filter import FileFilter
+
+class FileTreeGenerator:
+    """Generates a tree-like directory structure for a given directory.
+
+    Traverses the directory up to a specified depth and applies file filters to exclude
+    certain files and directories.
+    """
+
+    def __init__(
+        self,
+        directory: Path,
+        depth: int,
+        file_filter: FileFilter,
+    ):
+        """
+        Initialize the FileTreeGenerator.
+
+        Args:
+            directory (Path): The root directory to generate the tree from.
+            depth (int): The maximum depth to traverse (-1 for unlimited).
+            file_filter (FileFilter): The file filter to determine which files and directories to include.
+
+        Attributes:
+            directory_count (int): The total number of directories processed.
+            file_count (int): The total number of files processed.
+        """
+        self.directory = directory
+        self.depth = depth
+        self.file_filter = file_filter
+        self.directory_count = 0  # Initialize directory count
+        self.file_count = 0       # Initialize file count
+
+    def generate(self, current_dir: Optional[Path] = None, current_depth: int = 0, prefix: str = "") -> str:
+        """Generate the directory tree as a string.
+
+        Args:
+            current_dir (Path, optional): The current directory being traversed.
+            current_depth (int): The current depth in the directory tree.
+            prefix (str): The prefix string for the current level of the tree.
+
+        Returns:
+            str: The generated directory tree as a string.
+        """
+
+        if current_dir is None:
+            current_dir = self.directory
+            self.directory_count = 1  # Count the root directory
+
+        if self.depth != -1 and current_depth > self.depth:
+            return ""
+
+        output = []
+        try:
+            contents = sorted(current_dir.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
+        except Exception as e:
+            output.append(f"{prefix}Error accessing {current_dir}: {e}")
+            return "\n".join(output)
+
+        # Build list of items to show:
+        visible_items = []
+        for path in contents:
+            if path.is_dir():
+                visible_items.append(path)
+            elif path.is_file():
+                if not self.file_filter.should_ignore(path):
+                    visible_items.append(path)
+
+        for i, path in enumerate(visible_items):
+            is_last = i == len(visible_items) - 1
+            connector = "└── " if is_last else "├── "
+            if path.is_dir():
+                # Always count directories
+                self.directory_count += 1
+                if self.file_filter.should_ignore(path):
+                    # Mark the directory as ignored and do not descend
+                    output.append(f"{prefix}{connector}{path.name}/ (contents not displayed)")
+                else:
+                    output.append(f"{prefix}{connector}{path.name}/")
+                    extension = "    " if is_last else "│   "
+                    subtree = self.generate(path, current_depth + 1, prefix + extension)
+                    if subtree:
+                        output.append(subtree)
+            else:
+                self.file_count += 1  # Count file
+                output.append(f"{prefix}{connector}{path.name}")
+        return "\n".join(output)
