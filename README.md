@@ -46,7 +46,7 @@ policies: list[PolicyToReview] = [
         description="Infrastructure code (e.g., file system, network, database) should be isolated from domain logic and accessed via abstractions."
     ),
 ]
-PATH_CODE_TO_REVIEW = pathlib.Path("C:/code_work/GrundfosWorkCompanion/GWC.PromptFlow.Flows/src/flow_chat_product_companion_plan_and_execute_agent")
+PATH_CODE_TO_REVIEW = pathlib.Path("C:/code/path_to_my_project_dir/")
 
 if __name__ == "__main__":
     main(PATH_CODE_TO_REVIEW, policies)
